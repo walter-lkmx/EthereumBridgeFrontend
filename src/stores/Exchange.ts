@@ -49,7 +49,8 @@ export class Exchange extends StoreConstructor {
     ethAddress: '',
     fee: 0,
     id: '',
-    oneAddress: '',
+    secretAddress: '',
+    asset: '',
     status: SwapStatus.SWAP_WAIT_SEND,
     timestamp: 0,
     token: undefined,
@@ -218,46 +219,46 @@ export class Exchange extends StoreConstructor {
     this.operation.id = operationId;
     //this.stores.routing.push('/operations/' + this.operation.id);
 
-    const swap = await operationService.getOperation({ id: operationId });
+    const operation = await operationService.getOperation({ id: operationId });
+    this.operation = operation.operation;
 
-    if (swap.swap) {
+    if (operation.swap) {
       this.operation.type =
-        swap.swap.src_network === 'Ethereum'
+        operation.swap.src_network === 'Ethereum'
           ? EXCHANGE_MODE.ETH_TO_SCRT
           : EXCHANGE_MODE.SCRT_TO_ETH;
       this.token =
-        swap.swap.src_coin === 'native'
+        operation.swap.src_coin === 'native'
           ? TOKEN.ETH
           : this.operation.type === EXCHANGE_MODE.ETH_TO_SCRT
           ? TOKEN.ERC20
           : TOKEN.S20;
 
-      this.operation.status = swap.swap.status;
+      this.operation.status = operation.swap.status;
 
       if (this.operation.type === EXCHANGE_MODE.ETH_TO_SCRT) {
+        console.log(`${JSON.stringify(operation.swap)}`);
 
-        console.log(`${JSON.stringify(swap.swap)}`)
-
-        this.transaction.ethAddress = swap.swap.src_address;
-        this.transaction.scrtAddress = swap.swap.dst_address;
+        this.transaction.ethAddress = operation.swap.src_address;
+        this.transaction.scrtAddress = operation.swap.dst_address;
 
         const decimals = this.stores.tokens.allData.find(
-           t => t.dst_address === swap.swap.dst_address,
+          t => t.dst_address === operation.swap.dst_address,
         ).decimals;
 
-        this.transaction.amount = divDecimals(swap.swap.amount, decimals);
-        this.txHash = swap.swap.src_tx_hash;
+        this.transaction.amount = divDecimals(operation.swap.amount, decimals);
+        this.txHash = operation.swap.src_tx_hash;
       } else {
         const decimals = this.stores.tokens.allData.find(
-          t => t.dst_address === swap.swap.src_coin,
+          t => t.dst_address === operation.swap.src_coin,
         ).decimals;
 
-        this.transaction.amount = divDecimals(swap.swap.amount, decimals);
+        this.transaction.amount = divDecimals(operation.swap.amount, decimals);
 
-        this.transaction.scrtAddress = swap.swap.src_address;
-        this.transaction.ethAddress = swap.swap.dst_address;
-        this.transaction.amount = String(swap.swap.amount);
-        this.txHash = swap.swap.dst_tx_hash;
+        this.transaction.scrtAddress = operation.swap.src_address;
+        this.transaction.ethAddress = operation.swap.dst_address;
+        this.transaction.amount = String(operation.swap.amount);
+        this.txHash = operation.swap.dst_tx_hash;
       }
     }
 
@@ -287,8 +288,22 @@ export class Exchange extends StoreConstructor {
   }
 
   @action.bound
-  async updateOperation(id: string, transactionHash: string) {
-    const result = await operationService.updateOperation(id, transactionHash);
+  async updateOperation(
+    id: string,
+    transactionHash: string,
+    ethAddress: string,
+    secretAddress: string,
+    asset: string,
+    amount: string,
+  ) {
+    const result = await operationService.updateOperation(
+      id,
+      transactionHash,
+      ethAddress,
+      secretAddress,
+      asset,
+      amount,
+    );
 
     if (result.result === 'failed') {
       throw Error(
@@ -408,6 +423,10 @@ export class Exchange extends StoreConstructor {
     this.operation.status = await this.updateOperation(
       this.operation.id,
       transaction.transactionHash,
+      this.transaction.ethAddress,
+      this.transaction.scrtAddress,
+      `${this.stores.userMetamask.erc20TokenDetails.symbol} -> secret${this.stores.userMetamask.erc20TokenDetails.symbol}`,
+      this.transaction.amount,
     );
     this.setStatus();
 
@@ -434,6 +453,10 @@ export class Exchange extends StoreConstructor {
     this.operation.status = await this.updateOperation(
       this.operation.id,
       transaction.transactionHash,
+      this.transaction.ethAddress,
+      this.transaction.scrtAddress,
+      `ETH -> secretETH`,
+      this.transaction.amount,
     );
     this.setStatus();
 
@@ -448,15 +471,20 @@ export class Exchange extends StoreConstructor {
     this.setStatus();
 
     let decimals: number | string;
+    let symbol: string;
     if (isEth) {
       decimals = 18;
-      this.transaction.snip20Address = this.stores.tokens.allData.find(
+      const token = this.stores.tokens.allData.find(
         t => t.src_coin === 'Ethereum',
-      ).dst_address;
+      );
+      this.transaction.snip20Address = token.dst_address;
+      symbol = 'ETH';
     } else {
-      decimals = this.stores.tokens.allData.find(
+      const token = this.stores.tokens.allData.find(
         t => t.dst_address === this.transaction.snip20Address,
-      ).decimals;
+      );
+      decimals = token.decimals;
+      symbol = token.display_props.symbol;
     }
     const amount = mulDecimals(this.transaction.amount, decimals).toString();
 
@@ -490,6 +518,10 @@ export class Exchange extends StoreConstructor {
     this.operation.status = await this.updateOperation(
       this.operation.id,
       `${tx_id}|${this.transaction.snip20Address}`,
+      this.transaction.ethAddress,
+      this.transaction.scrtAddress,
+      `secret${symbol} -> ${symbol}`,
+      this.transaction.amount,
     );
     this.setStatus();
 

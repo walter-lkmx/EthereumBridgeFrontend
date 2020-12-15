@@ -70,40 +70,27 @@ export const Details = observer<{ showTotal?: boolean; children?: any }>(
 
     const isETH = exchange.mode === EXCHANGE_MODE.ETH_TO_SCRT;
 
+    exchange.setOperationId(exchange.operation.id);
+
     return (
       <Box direction="column">
         <AssetRow
           label="ETH Address"
-          value={exchange.transaction.ethAddress}
+          value={exchange.operation.ethAddress}
           address={true}
         />
         <AssetRow
           label="Secret Address"
-          value={exchange.transaction.scrtAddress}
+          value={exchange.operation.secretAddress}
           address={true}
         />
-        {exchange.token === TOKEN.ERC20 ? (
-          <AssetRow
-            label={`${String(
-              userMetamask.erc20TokenDetails &&
-                userMetamask.erc20TokenDetails.symbol,
-            ).toUpperCase()} amount`}
-            value={formatWithSixDecimals(exchange.transaction.amount)}
-          />
-        ) : (
-          <AssetRow
-            label={`${String(exchange.token).toUpperCase()} amount`}
-            value={formatWithSixDecimals(exchange.transaction.amount)}
-          />
-        )}
-
-        {/*<DataItem*/}
-        {/*  icon="User"*/}
-        {/*  iconSize="16px"*/}
-        {/*  text={truncateAddressString(exchange.transaction.oneAddress)}*/}
-        {/*  label="ONE address:"*/}
-        {/*  link={EXPLORER_URL + `/address/${exchange.transaction.oneAddress}`}*/}
-        {/*/>*/}
+        <AssetRow
+          label="Amount"
+          value={`${formatWithSixDecimals(exchange.operation.amount)} ${
+            exchange.operation.asset
+          }`}
+          address={true}
+        />
 
         {children ? <Box direction="column">{children}</Box> : null}
 
@@ -130,8 +117,7 @@ export const Details = observer<{ showTotal?: boolean; children?: any }>(
                 />
               )}
             </AssetRow>
-            {
-              exchange.mode === EXCHANGE_MODE.SCRT_TO_ETH ?
+            {exchange.mode === EXCHANGE_MODE.SCRT_TO_ETH ? (
               <AssetRow label="Swap Fee" value="">
                 {!exchange.isFeeLoading ? (
                   <Price
@@ -147,8 +133,8 @@ export const Details = observer<{ showTotal?: boolean; children?: any }>(
                     width="1em"
                   />
                 )}
-              </AssetRow> : null
-            }
+              </AssetRow>
+            ) : null}
             {!isShowDetail && isETH && !exchange.isFeeLoading ? (
               <Box
                 direction="row"

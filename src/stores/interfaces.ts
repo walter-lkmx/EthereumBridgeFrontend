@@ -52,10 +52,11 @@ export interface IOperation {
   type: EXCHANGE_MODE;
   token: TOKEN;
   status: SwapStatus;
-  amount: number;
+  amount: number | string;
   fee: number;
   ethAddress: string;
-  oneAddress: string;
+  secretAddress: string;
+  asset: string;
   actions: Array<IAction>;
   timestamp: number;
   erc20Address?: string;
