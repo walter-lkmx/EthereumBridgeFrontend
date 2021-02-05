@@ -62,17 +62,28 @@ const StepRow = ({
 
       <ProgressBar status={status}/>
 
-      <StepNumber step={1} isActive={status === SwapStatus.SWAP_WAIT_SEND}></StepNumber>
+      <div className={ styles.step }>
+        <StepNumber step={1} isActive={status === SwapStatus.SWAP_WAIT_SEND}></StepNumber>
+        <div className={ styles.text }>
+          <h4>{WalletTypeMessages[type].firstStep}</h4>
+          <p>{srcTransactionHash ? `Your TX ID is: ${srcTransactionHash}` : null}</p>
+        </div>
+      </div>
 
-      <h4>{WalletTypeMessages[type].firstStep}</h4>
-      <p>{srcTransactionHash ? `Your TX ID is: ${srcTransactionHash}` : null}</p>
+      <div className={ styles.step }>
+        <StepNumber step={2} isActive={status === SwapStatus.SWAP_SENT}></StepNumber>
+        <div className={ styles.text }>
+          <h4>Wait for 6 blocks</h4>
+          <p>The waiting period is required to ensure finality</p>
+          </div>
+      </div>
 
-      <StepNumber step={2} isActive={status === SwapStatus.SWAP_SENT}></StepNumber>
-      <h4>Wait for 6 blocks</h4>
-      <p>The waiting period is required to ensure finality</p>
-
-      <StepNumber step={3} isActive={status === SwapStatus.SWAP_CONFIRMED}></StepNumber>
-      <h4>{WalletTypeMessages[type].lastStep}</h4>
+      <div className={ styles.step }>
+        <StepNumber step={3} isActive={status === SwapStatus.SWAP_CONFIRMED}></StepNumber>
+        <div className={ styles.text }>
+          <h4>{WalletTypeMessages[type].lastStep}</h4>
+        </div>
+      </div>
     </Box>
   );
 };
