@@ -203,22 +203,6 @@ export const Details = observer<{ showTotal?: boolean; children?: any }>(
             ) : null}
           </Box>
         ) : null}
-
-        {exchange.txHash ? (
-          <Box direction="column" margin={{ top: 'large' }}>
-            <a
-              href={`${process.env.ETH_EXPLORER_URL}/tx/${exchange.txHash}`}
-              style={{ textDecoration: 'none' }}
-              target="_blank"
-            >
-              <AssetRow
-                label="Transaction hash"
-                value={exchange.txHash}
-                address={true}
-              />
-            </a>
-          </Box>
-        ) : null}
       </Box>
     );
   },

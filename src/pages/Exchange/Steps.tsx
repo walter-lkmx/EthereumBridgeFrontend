@@ -7,8 +7,61 @@ import * as styles from './feeds.styl';
 import { useStores } from 'stores';
 import { EXCHANGE_MODE } from 'stores/interfaces';
 import { SwapStatus } from '../../constants';
+import { truncateAddressString } from 'utils';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { Icon } from 'components/Base';
 
-console.log(styles);
+const AssetRow = props => {
+  return (
+    <Box
+      direction="row"
+      justify="between"
+      margin={{ bottom: 'medium' }}
+      align="start"
+    >
+      <Box>
+        <Text size="small" bold={true}>
+          {props.label}
+        </Text>
+      </Box>
+      <Box direction="row" align="center">
+        {props.address ? (
+          <a href={props.link}>
+            <Text
+              size="small"
+              style={{
+                fontFamily: 'monospace',
+              }}
+            >
+              {props.address ? truncateAddressString(props.value) : props.value}
+            </Text>
+          </a>
+        ) : (
+          <>
+            {props.value ? <Text size="small">{props.value}</Text> : null}
+            {props.children}
+          </>
+        )}
+
+        {props.after && (
+          <Text style={{ marginLeft: 5 }} color="Basic500">
+            {props.after}
+          </Text>
+        )}
+        {props.address && (
+          <CopyToClipboard text={props.value}>
+            <Icon
+              glyph="PrintFormCopy"
+              size="1em"
+              color="#1c2a5e"
+              style={{ marginLeft: 10, width: 20 }}
+            />
+          </CopyToClipboard>
+        )}
+      </Box>
+    </Box>
+  );
+};
 
 const ProgressBar = ({ status }) => {
   const statusProgress = {
@@ -66,7 +119,19 @@ const StepRow = ({
         <StepNumber step={1} isActive={status === SwapStatus.SWAP_WAIT_SEND}></StepNumber>
         <div className={ styles.text }>
           <h4>{WalletTypeMessages[type].firstStep}</h4>
-          <p>{srcTransactionHash ? `Your TX ID is: ${srcTransactionHash}` : null}</p>
+            <p>{srcTransactionHash ? 
+            <a
+              href={`${process.env.ETH_EXPLORER_URL}/tx/${srcTransactionHash}`}
+              style={{ textDecoration: 'none' }}
+              target="_blank"
+            >
+              <AssetRow
+                label="Your TX hash is:"
+                value={srcTransactionHash}
+                address={true}
+              />
+            </a>
+                : null}</p>
         </div>
       </div>
 

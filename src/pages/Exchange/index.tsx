@@ -198,15 +198,13 @@ export class Exchange extends React.Component<
         align="center"
         justify="center"
         fill={true}
-        pad="medium"
       >
         <Box
           className={styles.description}
           margin={{ top: 'medium' }}
-          pad={{ horizontal: 'small' }}
+          pad={{ horizontal: 'large' }}
           style={{ width: '100%' }}
         >
-          <Text style={{ textAlign: 'center' }}>{description}</Text>
           <Box margin={{ top: 'medium' }} style={{ width: '100%' }}>
             <Steps />
           </Box>
